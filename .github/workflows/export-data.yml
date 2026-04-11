@@ -9,6 +9,7 @@ jobs:
   export:
     name: Export gold tables to static JSON
     runs-on: ubuntu-latest
+    if: github.repository != 'richmulvany/databricks-pipeline-template'
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
