@@ -15,7 +15,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
+    if: github.repository != 'richmulvany/databricks-pipeline-template' && (github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run')
     permissions:
       contents: read
       pages: write
