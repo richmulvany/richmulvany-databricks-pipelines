@@ -177,8 +177,3 @@ make test-lint     # Linting only
 | Secret management | Databricks Secret Scopes |
 | Code quality | ruff + mypy + pre-commit |
 
----
-
-## License
-
-MIT — see [LICENSE](LICENSE).
