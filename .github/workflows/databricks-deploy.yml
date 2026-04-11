@@ -15,6 +15,7 @@ jobs:
     name: Deploy DLT Pipeline
     runs-on: ubuntu-latest
     environment: production
+    if: github.repository != 'richmulvany/databricks-pipeline-template'
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
