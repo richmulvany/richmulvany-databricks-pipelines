@@ -8,10 +8,11 @@
 
 import dlt
 from pyspark.sql import functions as F
-
+from pyspark.sql.window import Window
 
 # ── Boss Progression Summary ───────────────────────────────────────────────────
 # "Which bosses have we killed and how many attempts did it take?"
+
 
 @dlt.table(
     name="gold_boss_progression",
@@ -43,6 +44,7 @@ def gold_boss_progression():
 # ── Raid Summary ───────────────────────────────────────────────────────────────
 # "How did each raid go at a high level?"
 
+
 @dlt.table(
     name="gold_raid_summary",
     comment="One row per raid report with aggregate kill/wipe/duration stats.",
@@ -64,7 +66,7 @@ def gold_raid_summary():
         reports.join(fight_stats, reports.code == fight_stats.report_code, "left")
         .select(
             reports.code.alias("report_code"),
-            reports.report_title,
+            reports.title.alias("report_title"),
             reports.zone_name,
             reports.start_time_utc,
             fight_stats.total_pulls,
@@ -79,6 +81,7 @@ def gold_raid_summary():
 
 # ── Rolling Kill Progression ───────────────────────────────────────────────────
 # "How has our progression developed week over week?"
+
 
 @dlt.table(
     name="gold_progression_timeline",
@@ -101,8 +104,8 @@ def gold_progression_timeline():
         .orderBy("start_time_utc")
     )
 
-    window = F.Window.orderBy("start_time_utc").rowsBetween(
-        F.Window.unboundedPreceding, F.Window.currentRow
+    window = Window.orderBy("start_time_utc").rowsBetween(
+        Window.unboundedPreceding, Window.currentRow
     )
 
     return kills.withColumn("cumulative_kills", F.count("boss_name").over(window))

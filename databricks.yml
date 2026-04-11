@@ -15,24 +15,23 @@ variables:
   pipeline_name:
     description: DLT pipeline display name
     default: Medallion Pipeline
+  service_principal_name:
+    description: Service principal for production deployments
+    default: your-sp@your-org.example.com
 
 targets:
   development:
     mode: development
     default: true
-    workspace:
-      host: ${var.DATABRICKS_HOST}
     variables:
       schema: pipeline_dev
 
   production:
     mode: production
-    workspace:
-      host: ${var.DATABRICKS_HOST}
     variables:
       schema: pipeline_prod
     run_as:
-      service_principal_name: pipeline-sp@richmulvany.github.com
+      service_principal_name: ${var.service_principal_name}
 
 resources:
   pipelines:
@@ -44,11 +43,15 @@ resources:
       # DLT notebook/file sources — list all pipeline files here
       libraries:
         - notebook:
-            path: pipeline/bronze/raw_entities.py
+            path: pipeline/bronze/raw_source.py
         - notebook:
             path: pipeline/silver/clean_entities.py
         - notebook:
+            path: pipeline/silver/clean_reports.py
+        - notebook:
             path: pipeline/gold/entity_summary.py
+        - notebook:
+            path: pipeline/gold/summary_products.py
 
       configuration:
         # Secrets are read via dbutils.secrets inside pipeline notebooks
@@ -71,4 +74,4 @@ resources:
           new_cluster:
             spark_version: 14.3.x-scala2.12
             node_type_id: Standard_DS3_v2
-            num_workers: 1
+            num_workers: 0

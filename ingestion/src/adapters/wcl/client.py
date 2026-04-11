@@ -7,7 +7,7 @@ import httpx
 import structlog
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from ingestion.src.adapters.base import BaseAdapter
+from ingestion.src.adapters.base import AdapterConfig, BaseAdapter, FetchResult
 
 log = structlog.get_logger(__name__)
 
@@ -16,12 +16,20 @@ TOKEN_URL = "https://www.warcraftlogs.com/oauth/token"
 API_URL = "https://www.warcraftlogs.com/api/v2/client"
 
 
+class WarcraftLogsConfig(AdapterConfig):
+    """Configuration for the WarcraftLogs adapter."""
+
+    client_id: str
+    client_secret: str
+    base_url: str = API_URL
+
+
 class WarcraftLogsAdapter(BaseAdapter):
     """
     Adapter for the WarcraftLogs v2 GraphQL API.
 
     Authentication:
-        Requires WARCRAFTLOGS_CLIENT_ID and WARCRAFTLOGS_CLIENT_SECRET
+        Requires SOURCE_API_CLIENT_ID and SOURCE_API_CLIENT_SECRET
         environment variables (or Databricks secret scope equivalents).
 
     Rate limits:
@@ -29,28 +37,33 @@ class WarcraftLogsAdapter(BaseAdapter):
         resets hourly. Conservative defaults are set below.
     """
 
-    def __init__(self) -> None:
-        self._client_id = os.environ["SOURCE_API_CLIENT_ID"]
-        self._client_secret = os.environ["SOURCE_API_CLIENT_SECRET"]
+    def __init__(self, config: WarcraftLogsConfig | None = None) -> None:
+        if config is None:
+            config = WarcraftLogsConfig(
+                client_id=os.environ["SOURCE_API_CLIENT_ID"],
+                client_secret=os.environ["SOURCE_API_CLIENT_SECRET"],
+            )
+        super().__init__(config)
+        self.config: WarcraftLogsConfig = config
         self._access_token: str | None = None
-        self._http: httpx.AsyncClient | None = None
+        self._http: httpx.Client | None = None
 
-    async def authenticate(self) -> None:
+    def authenticate(self) -> None:
         """Obtain an OAuth2 bearer token via client credentials flow."""
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
+        with httpx.Client() as client:
+            response = client.post(
                 TOKEN_URL,
                 data={
                     "grant_type": "client_credentials",
-                    "client_id": self._client_id,
-                    "client_secret": self._client_secret,
+                    "client_id": self.config.client_id,
+                    "client_secret": self.config.client_secret,
                 },
             )
             response.raise_for_status()
             self._access_token = response.json()["access_token"]
             log.info("wcl.authenticated")
 
-        self._http = httpx.AsyncClient(
+        self._http = httpx.Client(
             headers={"Authorization": f"Bearer {self._access_token}"},
             timeout=30.0,
         )
@@ -59,26 +72,27 @@ class WarcraftLogsAdapter(BaseAdapter):
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=30),
     )
-    async def fetch_raw(self, endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
+    def fetch(self, endpoint: str, params: dict[str, Any] | None = None) -> FetchResult:
         """
         Execute a GraphQL query against the WCL API.
 
         Args:
-            endpoint: Ignored for GraphQL — pass any descriptive label.
+            endpoint: Descriptive label for the query (e.g. 'guild_reports').
             params: Must contain 'query' (str) and optionally 'variables' (dict).
 
         Returns:
-            The 'data' field from the GraphQL response.
+            FetchResult with records extracted from the GraphQL response.
         """
         if self._http is None:
-            raise RuntimeError("Call authenticate() before fetch_raw()")
+            raise RuntimeError("Call authenticate() before fetch()")
 
+        params = params or {}
         query = params.get("query", "")
         variables = params.get("variables", {})
 
         log.debug("wcl.query", endpoint=endpoint, variables=variables)
 
-        response = await self._http.post(
+        response = self._http.post(
             API_URL,
             json={"query": query, "variables": variables},
         )
@@ -89,7 +103,25 @@ class WarcraftLogsAdapter(BaseAdapter):
             log.error("wcl.graphql_errors", errors=payload["errors"])
             raise ValueError(f"GraphQL errors: {payload['errors']}")
 
-        return payload.get("data", {})
+        data = payload.get("data", {})
+
+        # Flatten nested GraphQL response into a list of records
+        records = self._extract_records(data)
+
+        return FetchResult(
+            source="wcl",
+            endpoint=endpoint,
+            records=records,
+            total_records=len(records),
+            has_more=False,
+        )
+
+    def validate(self, result: FetchResult) -> bool:
+        """Validate that we received at least one record."""
+        if not result.records:
+            log.warning("wcl.empty_result", endpoint=result.endpoint)
+            return False
+        return True
 
     def get_source_name(self) -> str:
         return "wcl"
@@ -100,16 +132,16 @@ class WarcraftLogsAdapter(BaseAdapter):
             "requests_per_hour": 300,
         }
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """Close the underlying HTTP client."""
         if self._http:
-            await self._http.aclose()
+            self._http.close()
 
     # ── Convenience query methods ─────────────────────────────────────────────
 
-    async def fetch_guild_reports(
+    def fetch_guild_reports(
         self, guild_name: str, server_slug: str, server_region: str
-    ) -> dict[str, Any]:
+    ) -> FetchResult:
         """Fetch recent raid reports for a guild."""
         query = """
         query GuildReports($guildName: String!, $serverSlug: String!, $serverRegion: String!) {
@@ -127,7 +159,7 @@ class WarcraftLogsAdapter(BaseAdapter):
           }
         }
         """
-        return await self.fetch_raw(
+        return self.fetch(
             "guild_reports",
             {
                 "query": query,
@@ -139,7 +171,7 @@ class WarcraftLogsAdapter(BaseAdapter):
             },
         )
 
-    async def fetch_report_fights(self, report_code: str) -> dict[str, Any]:
+    def fetch_report_fights(self, report_code: str) -> FetchResult:
         """Fetch fight breakdown for a specific report."""
         query = """
         query ReportFights($code: String!) {
@@ -163,7 +195,23 @@ class WarcraftLogsAdapter(BaseAdapter):
           }
         }
         """
-        return await self.fetch_raw(
+        return self.fetch(
             "report_fights",
             {"query": query, "variables": {"code": report_code}},
         )
+
+    @staticmethod
+    def _extract_records(data: dict[str, Any]) -> list[dict[str, Any]]:
+        """Flatten a nested GraphQL response into a flat list of records."""
+        if not data:
+            return []
+        # Walk into the first nested value until we find a list
+        current: Any = data
+        while isinstance(current, dict):
+            keys = list(current.keys())
+            if not keys:
+                return []
+            current = current[keys[0]]
+        if isinstance(current, list):
+            return current
+        return [data]

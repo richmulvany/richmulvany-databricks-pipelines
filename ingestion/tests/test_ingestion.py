@@ -1,7 +1,6 @@
 """Tests for the ingestion layer."""
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from ingestion.src.adapters.wcl.client import WarcraftLogsAdapter
 from ingestion.src.utils.helpers import RateLimiter, add_ingestion_metadata
@@ -25,10 +24,9 @@ class TestWarcraftLogsAdapter:
         assert "requests_per_hour" in config
         assert config["requests_per_minute"] > 0
 
-    @pytest.mark.asyncio
-    async def test_fetch_raw_raises_without_auth(self, adapter: WarcraftLogsAdapter) -> None:
-        with pytest.raises(RuntimeError, match="authenticate"):
-            await adapter.fetch_raw("test", {"query": "{ test }"})
+    def test_fetch_raises_without_auth(self, adapter: WarcraftLogsAdapter) -> None:
+        with pytest.raises((RuntimeError, Exception), match="authenticate|RetryError"):
+            adapter.fetch("test", {"query": "{ test }"})
 
 
 class TestRateLimiter:

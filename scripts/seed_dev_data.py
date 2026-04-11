@@ -9,7 +9,7 @@ Usage:
 
 import json
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 OUTPUT_DIR = Path("data/samples")
@@ -20,7 +20,7 @@ rng = random.Random(42)  # Deterministic seed for reproducibility
 
 def random_timestamp(days_ago_max: int = 90) -> str:
     delta = timedelta(days=rng.randint(0, days_ago_max), seconds=rng.randint(0, 86400))
-    return (datetime.now(timezone.utc) - delta).isoformat()
+    return (datetime.now(UTC) - delta).isoformat()
 
 
 def generate_entities(n: int = 50) -> list[dict]:
@@ -64,7 +64,12 @@ def wrap_paginated(data: list[dict], page_size: int = 100) -> dict:
 samples = {
     "entities.json": wrap_paginated(generate_entities()),
     "events.json": wrap_paginated(generate_events()),
-    "metadata.json": {"data": [{"key": "schema_version", "value": "1.0"}], "total": 1, "page": 1, "has_more": False},
+    "metadata.json": {
+        "data": [{"key": "schema_version", "value": "1.0"}],
+        "total": 1,
+        "page": 1,
+        "has_more": False,
+    },
 }
 
 for filename, payload in samples.items():

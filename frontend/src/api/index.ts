@@ -26,6 +26,37 @@ export interface EntitySummaryRow {
   _gold_generated_at: string
 }
 
+export interface BossProgressionRow {
+  boss_name: string
+  difficulty: number
+  total_pulls: number
+  total_kills: number
+  total_wipes: number
+  best_kill_seconds: number | null
+  avg_pull_duration_seconds: number
+  is_killed: boolean | null
+  wipe_to_kill_ratio: number
+}
+
+export interface RaidSummaryRow {
+  report_code: string
+  report_title: string
+  zone_name: string
+  start_time_utc: string
+  total_pulls: number | null
+  boss_kills: number | null
+  total_wipes: number | null
+  total_time_seconds: number | null
+  unique_bosses_engaged: number | null
+}
+
+export interface ProgressionTimelineRow {
+  boss_name: string
+  difficulty: number
+  start_time_utc: string
+  cumulative_kills: number
+}
+
 export interface ExportManifest {
   exported_at: string
   tables: string[]
@@ -34,8 +65,9 @@ export interface ExportManifest {
 
 export const api = {
   fetchEntitySummary: () => fetchExport<EntitySummaryRow>('entity_summary'),
+  fetchBossProgression: () => fetchExport<BossProgressionRow>('boss_progression'),
+  fetchRaidSummary: () => fetchExport<RaidSummaryRow>('raid_summary'),
+  fetchProgressionTimeline: () => fetchExport<ProgressionTimelineRow>('progression_timeline'),
   fetchManifest: () =>
     fetch(`${BASE_URL}/manifest.json`).then((r) => r.json()) as Promise<ExportManifest>,
-  // Add more fetchers here as your project grows:
-  // fetchOtherTable: () => fetchExport<OtherRow>('other_table'),
 }

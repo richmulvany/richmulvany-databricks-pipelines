@@ -10,7 +10,6 @@ jobs:
   lint-and-test:
     name: Lint & Test (Python)
     runs-on: ubuntu-latest
-    if: github.repository != 'richmulvany/databricks-pipeline-template'
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -37,7 +36,6 @@ jobs:
   build-frontend:
     name: Build Frontend
     runs-on: ubuntu-latest
-    if: github.repository != 'richmulvany/databricks-pipeline-template'
     steps:
       - uses: actions/checkout@v4
       - name: Set up Node
