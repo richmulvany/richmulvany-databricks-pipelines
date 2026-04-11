@@ -32,7 +32,7 @@ targets:
     variables:
       schema: pipeline_prod
     run_as:
-      service_principal_name: pipeline-sp@your-domain.com
+      service_principal_name: pipeline-sp@richmulvany.github.com
 
 resources:
   pipelines:

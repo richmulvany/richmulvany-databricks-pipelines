@@ -4,7 +4,7 @@
 
 # COMMAND ----------
 import sys
-sys.path.insert(0, "/Workspace/Repos/your-repo")  # Update with your repo path
+sys.path.insert(0, "/Workspace/Repos/databricks-pipeline-template")  # Update with your repo path
 
 import json
 import logging

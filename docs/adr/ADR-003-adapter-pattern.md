@@ -1,6 +1,6 @@
 # ADR-003: Adapter Pattern for Ingestion
 
-**Date:** 2026-01-01
+**Date:** 2025-01-01
 **Status:** Accepted
 
 ## Context

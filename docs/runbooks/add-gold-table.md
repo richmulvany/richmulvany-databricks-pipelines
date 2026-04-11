@@ -47,11 +47,19 @@ GOLD_TABLE_EXPORTS = {
 
 Add an entry to `docs/data_dictionary/README.md`.
 
-### 6. Add a frontend API function
+### 6. Create a data contract
+
+Add a contract at `docs/data_contracts/gold_your_table_name.md` and register it
+in `docs/data_contracts/README.md`. Copy `gold_entity_summary.md` as a template.
+
+The contract should define the schema guarantee, freshness SLA, and what counts
+as a breaking change — before the frontend starts consuming the table.
+
+### 7. Add a frontend API function
 
 Add a fetch function in `frontend/src/api/` and a corresponding hook in `frontend/src/hooks/`.
 
-### 7. Deploy
+### 8. Deploy
 
 ```bash
 make deploy-pipeline

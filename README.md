@@ -1,6 +1,6 @@
 # 🏗️ Databricks Medallion Pipeline Template
 
-[![CI](https://github.com/richmulvany/richmulvany-databricks-pipelines/actions/workflows/ci.yml/badge.svg)](https://github.com/richmulvany/richmulvany-databricks-pipelines/actions/workflows/ci.yml)
+[![CI](https://github.com/richmulvany/databricks-pipeline-template/actions/workflows/ci.yml/badge.svg)](https://github.com/richmulvany/databricks-pipeline-template/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
@@ -65,7 +65,8 @@ External API
 ├── docs/
 │   ├── adr/                # Architecture Decision Records
 │   ├── runbooks/           # Operational runbooks
-│   └── data_dictionary/    # Gold layer table definitions
+│   ├── data_dictionary/    # Gold layer table definitions
+│   └── data_contracts/     # Producer/consumer schema agreements
 ├── notebooks/              # Exploratory analysis
 ├── scripts/                # Utility scripts
 ├── data/samples/           # Mock API responses for testing
@@ -89,7 +90,7 @@ Click **"Use this template"** on GitHub, or:
 
 ```bash
 pip install cookiecutter
-cookiecutter gh:your-username/databricks-pipeline-template
+cookiecutter gh:richmulvany/databricks-pipeline-template
 ```
 
 ### 2. First-time setup
@@ -155,6 +156,7 @@ make test-lint     # Linting only
 - [Adapter Guide](docs/architecture/adapter_guide.md)
 - [ADR Index](docs/adr/README.md)
 - [Data Dictionary](docs/data_dictionary/README.md)
+- [Data Contracts](docs/data_contracts/README.md)
 - [Runbooks](docs/runbooks/README.md)
 - [Contributing](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
@@ -171,6 +173,7 @@ make test-lint     # Linting only
 | CI/CD | GitHub Actions |
 | Adapter pattern | Pluggable ingestion layer |
 | ADRs | Architecture Decision Records in `docs/adr/` |
+| Data contracts | Producer/consumer schema agreements in `docs/data_contracts/` |
 | Secret management | Databricks Secret Scopes |
 | Code quality | ruff + mypy + pre-commit |
 

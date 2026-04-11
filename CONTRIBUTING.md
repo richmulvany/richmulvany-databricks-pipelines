@@ -3,8 +3,8 @@
 ## Development setup
 
 ```bash
-git clone https://github.com/richmulvany/richmulvany-databricks-pipelines
-cd your-repo
+git clone https://github.com/richmulvany/databricks-pipeline-template
+cd databricks-pipeline-template
 make init
 ```
 

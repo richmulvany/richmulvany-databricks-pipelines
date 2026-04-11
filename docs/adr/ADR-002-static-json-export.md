@@ -1,6 +1,6 @@
 # ADR-002: Static JSON Export for Frontend Data
 
-**Date:** 2026-01-01
+**Date:** 2025-01-01
 **Status:** Accepted
 
 ## Context

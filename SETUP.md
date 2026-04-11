@@ -20,7 +20,7 @@ Edit `.env` with your values:
 DATABRICKS_HOST=https://adb-xxxx.azuredatabricks.net
 DATABRICKS_TOKEN=your-personal-access-token
 DATABRICKS_CATALOG=main
-DATABRICKS_SCHEMA=your_project_name
+DATABRICKS_SCHEMA=databricks_pipeline
 SOURCE_API_BASE_URL=https://your-api.example.com
 SOURCE_API_KEY=your-api-key
 EXPORT_STORAGE_PATH=/dbfs/mnt/exports
@@ -94,7 +94,7 @@ npm run dev   # Local development
 
 Edit `frontend/.env.local`:
 ```
-VITE_DATA_BASE_URL=https://your-username.github.io/your-repo/data
+VITE_DATA_BASE_URL=https://richmulvany.github.io/databricks-pipeline-template/data
 ```
 
 ## Step 9: Deploy the frontend

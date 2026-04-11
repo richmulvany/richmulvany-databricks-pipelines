@@ -19,7 +19,7 @@ Copy the template below into a new file named `ADR-NNN-short-title.md`.
 ```markdown
 # ADR-NNN: Title
 
-**Date:** YYYY-MM-DD
+**Date:** 2026-04-11
 **Status:** Proposed | Accepted | Deprecated | Superseded by ADR-NNN
 
 ## Context

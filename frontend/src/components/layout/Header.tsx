@@ -27,7 +27,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             </span>
           )}
           <a
-            href="https://github.com/your-username/your-repo"
+            href="https://github.com/richmulvany/databricks-pipeline-template"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs font-mono text-slate-600 hover:text-slate-400 transition-colors"
