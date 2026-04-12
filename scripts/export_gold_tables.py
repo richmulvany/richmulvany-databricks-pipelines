@@ -11,7 +11,7 @@ Usage:
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from databricks.sdk import WorkspaceClient
@@ -27,6 +27,9 @@ OUTPUT_DIR = Path(os.environ.get("EXPORT_OUTPUT_DIR", "data/exports"))
 # Add gold tables here: output filename -> SQL query
 GOLD_TABLE_EXPORTS: dict[str, str] = {
     "entity_summary": f"SELECT * FROM {CATALOG}.{SCHEMA}.gold_entity_summary",
+    "boss_progression": f"SELECT * FROM {CATALOG}.{SCHEMA}.gold_boss_progression",
+    "raid_summary": f"SELECT * FROM {CATALOG}.{SCHEMA}.gold_raid_summary",
+    "progression_timeline": f"SELECT * FROM {CATALOG}.{SCHEMA}.gold_progression_timeline",
 }
 
 
@@ -50,13 +53,13 @@ def export_table(client: WorkspaceClient, name: str, query: str) -> int:
 
     columns = [col.name for col in response.manifest.schema.columns]
     rows = response.result.data_array or []
-    records = [dict(zip(columns, row)) for row in rows]
+    records = [dict(zip(columns, row, strict=True)) for row in rows]
 
     output_path = OUTPUT_DIR / f"{name}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     payload = {
-        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_at": datetime.now(UTC).isoformat(),
         "record_count": len(records),
         "data": records,
     }
@@ -76,7 +79,7 @@ def main() -> None:
         total += export_table(client, name, query)
 
     manifest = {
-        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_at": datetime.now(UTC).isoformat(),
         "tables": list(GOLD_TABLE_EXPORTS.keys()),
         "total_records": total,
     }

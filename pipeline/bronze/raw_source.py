@@ -10,14 +10,14 @@
 
 import dlt
 from pyspark.sql import functions as F
-from pyspark.sql.types import StringType
 
 CATALOG = spark.conf.get("pipelines.catalog", "main")  # type: ignore[name-defined]  # noqa: F821
-SCHEMA  = spark.conf.get("pipelines.target", "my_project")  # noqa: F821
+SCHEMA = spark.conf.get("pipelines.schema", "pipeline_dev")  # noqa: F821
 LANDING = f"/Volumes/{CATALOG}/{SCHEMA}/landing"
 
 
 # ── Guild Reports ──────────────────────────────────────────────────────────────
+
 
 @dlt.table(
     name="bronze_guild_reports",
@@ -27,8 +27,7 @@ LANDING = f"/Volumes/{CATALOG}/{SCHEMA}/landing"
 @dlt.expect("has_ingestion_timestamp", "_ingested_at IS NOT NULL")
 def bronze_guild_reports():
     return (
-        spark.readStream  # noqa: F821
-        .format("cloudFiles")
+        spark.readStream.format("cloudFiles")  # noqa: F821
         .option("cloudFiles.format", "json")
         .option("cloudFiles.inferColumnTypes", "true")
         .option("cloudFiles.schemaLocation", f"{LANDING}/guild_reports/_schema")
@@ -39,6 +38,7 @@ def bronze_guild_reports():
 
 # ── Report Fights ──────────────────────────────────────────────────────────────
 
+
 @dlt.table(
     name="bronze_report_fights",
     comment="Raw fight-level data per raid report, ingested via Auto Loader.",
@@ -48,8 +48,7 @@ def bronze_guild_reports():
 @dlt.expect("has_ingestion_timestamp", "_ingested_at IS NOT NULL")
 def bronze_report_fights():
     return (
-        spark.readStream  # noqa: F821
-        .format("cloudFiles")
+        spark.readStream.format("cloudFiles")  # noqa: F821
         .option("cloudFiles.format", "json")
         .option("cloudFiles.inferColumnTypes", "true")
         .option("cloudFiles.schemaLocation", f"{LANDING}/report_fights/_schema")

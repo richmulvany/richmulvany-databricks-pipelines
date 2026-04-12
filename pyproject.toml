@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "databricks-pipeline-template"
@@ -30,17 +30,20 @@ dev = [
     "freezegun>=1.5.0",     # Time mocking for tests
 ]
 
+[tool.setuptools.packages.find]
+include = ["ingestion*", "pipeline*", "scripts*"]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM"]
-ignore = ["E501"]
+ignore = ["E501", "N812"]
 
 [tool.ruff.format]
 quote-style = "double"
-indent-style = "tab"
+indent-style = "space"
 
 [tool.mypy]
 python_version = "3.11"

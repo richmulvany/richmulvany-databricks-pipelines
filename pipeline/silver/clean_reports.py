@@ -9,8 +9,8 @@
 import dlt
 from pyspark.sql import functions as F
 
-
 # ── Cleaned Guild Reports ──────────────────────────────────────────────────────
+
 
 @dlt.table(
     name="silver_guild_reports",
@@ -36,6 +36,7 @@ def silver_guild_reports():
 
 
 # ── Cleaned Fight Events ───────────────────────────────────────────────────────
+
 
 @dlt.table(
     name="silver_fight_events",

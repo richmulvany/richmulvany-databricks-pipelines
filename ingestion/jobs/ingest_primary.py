@@ -3,12 +3,13 @@
 # Replace ExampleAdapter with your chosen adapter.
 
 # COMMAND ----------
+import os
 import sys
-sys.path.insert(0, "/Workspace/Repos/databricks-pipeline-template")  # Update with your repo path
 
-import json
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ingestion.src.adapters.example_adapter.adapter import ExampleAdapter
 from ingestion.src.adapters.example_adapter.config import load_config
@@ -32,9 +33,9 @@ ENDPOINTS = [
 
 # COMMAND ----------
 # Fetch and write raw data to Bronze Delta tables
-catalog = dbutils.widgets.get("catalog") if dbutils.widgets.get("catalog") else "main"
-schema = dbutils.widgets.get("schema") if dbutils.widgets.get("schema") else "pipeline_dev"
-ingested_at = datetime.now(timezone.utc).isoformat()
+catalog = dbutils.widgets.get("catalog") if dbutils.widgets.get("catalog") else "main"  # noqa: F821
+schema = dbutils.widgets.get("schema") if dbutils.widgets.get("schema") else "pipeline_dev"  # noqa: F821
+ingested_at = datetime.now(UTC).isoformat()
 
 for endpoint in ENDPOINTS:
     logger.info("Ingesting endpoint: %s", endpoint)
@@ -61,12 +62,11 @@ for endpoint in ENDPOINTS:
             for record in result.records
         ]
 
-        df = spark.createDataFrame(records)
+        df = spark.createDataFrame(records)  # noqa: F821
         table_name = f"{catalog}.{schema}.bronze_{endpoint}"
 
         (
-            df.write
-            .format("delta")
+            df.write.format("delta")
             .mode("append")
             .option("mergeSchema", "true")
             .saveAsTable(table_name)

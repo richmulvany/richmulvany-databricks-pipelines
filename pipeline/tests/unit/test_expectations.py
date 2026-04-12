@@ -1,4 +1,5 @@
 """Tests for shared expectation definitions."""
+
 from pipeline.expectations.common_expectations import VALID_ID, VALID_TIMESTAMP
 
 
